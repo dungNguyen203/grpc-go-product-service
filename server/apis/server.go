@@ -1,17 +1,20 @@
-package main
+package api
 
 import (
 	"context"
-	"log"
+	db "product-service/db/sqlc"
 	"product-service/models"
 	pb "product-service/proto/gen"
+	"product-service/utils"
 
 	// "go-grpc-product-service/models"
 	// pb "go-grpc-product-service/protocol/gen"
 
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -19,13 +22,37 @@ type server struct {
 	db *gorm.DB
 }
 
-func NewServer() *server {
-	db, err := gorm.Open(sqlite.Open("products.db"), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Failed to connect database: %v", err)
+type Server struct {
+	config     utils.Config
+	store      db.Store
+	// tokenMaker token.Maker
+	router     *gin.Engine
+    db *gorm.DB
+}
+
+// func NewServer() *Server {
+// 	db, err := gorm.Open(sqlite.Open("products.db"), &gorm.Config{})
+// 	if err != nil {
+// 		log.Fatalf("Failed to connect database: %v", err)
+// 	}
+// 	db.AutoMigrate(&models.Product{})
+// 	return &Server{db: db}
+// }
+
+func NewServer(config utils.Config, store db.Store) (*Server, error) {
+	// tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("cannot create token maker: %w", err)
+	// }
+	server := &Server{config: config, store: store}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("currency", validCurrency)
 	}
-	db.AutoMigrate(&models.Product{})
-	return &server{db: db}
+
+	server.setupRouter()
+
+	return server, nil
 }
 
 func (s *server) CreateProduct(ctx context.Context, req *pb.ProductRequest) (*pb.ProductResponse, error) {
@@ -84,4 +111,27 @@ func (s *server) UpdateProduct(ctx context.Context, req *pb.ProductUdpateRequest
 	return &pb.ProductResponse{Product: product.ToProto()}, nil
 }
 
+func (server *Server) setupRouter() {
+	router := gin.Default()
+
+	// router.POST("/auth/refresh_token", server.renewAccessToken)
+
+	router.POST("/users", server.createUser)
+	router.POST("/users/login", server.loginUser)
+
+	// authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+
+	// authRoutes.POST("/accounts", server.createAccount)
+	// authRoutes.GET("/accounts/:id", server.getAccount)
+	// authRoutes.GET("/accounts", server.listAccount)
+
+	// authRoutes.POST("/transfers", server.createTransfer)
+
+	server.router = router
+}
+
 // Additional CRUD methods...
+
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
+}
