@@ -114,16 +114,16 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	// accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
-	// refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
-	// 	user.Username,
-	// 	server.config.RefreshTokenDuration,
-	// )
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
+		user.Username,
+		server.config.RefreshTokenDuration,
+	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -152,5 +152,26 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		User:                  newUserResponse(user),
 	}
 
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (server *Server) getUsers(ctx *gin.Context) {
+	username := ctx.Query("username")
+	if username == "" {
+		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("username is required aaa")))
+		return
+	}
+
+	user, err := server.store.GetUser(ctx, username)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	resp := newUserResponse(user)
 	ctx.JSON(http.StatusOK, resp)
 }
