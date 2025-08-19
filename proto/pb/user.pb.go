@@ -110,7 +110,7 @@ const file_user_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12J\n" +
 	"\x13password_changed_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x11passwordChangedAt\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\x05Z\x03pb/b\x06proto3"
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB;Z9github.com/dungNguyen203/grpc-go-product-service/proto/pbb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once

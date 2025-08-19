@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package pb;
+
+import "user.proto";
+
+option go_package = "github.com/dungNguyen203/grpc-go-product-service/proto/pb";
+
+message GetUserRequest {
+    string username = 1;
+    // The username of the user to retrieve
+}
+
+message GetUserResponse {
+    // The user object returned by the service
+    // This should match the User message defined in user.proto
+   User user = 1;
+}

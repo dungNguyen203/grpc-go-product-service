@@ -4,7 +4,7 @@ package pb;
 
 import "user.proto";
 
-option go_package = "pb/";
+option go_package = "github.com/dungNguyen203/grpc-go-product-service/proto/pb";
 
 message CreateUserRequest{
     string username = 1;
